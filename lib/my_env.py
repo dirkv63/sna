@@ -99,27 +99,51 @@ def init_loghandler(config, modulename):
     return logger
 
 
-def env2abbr(env):
+def neo4j_load_param(filetype, arglist, filedir):
     """
-    This method will return the environment abbreviation.
-
-    :param env: Production - Development - Quality - Other
-
-    :return: prod - dev - qua - oth
+    This function helps to create the arguments for "neo4jadmin load" command. Filedir has all files that have been
+    prepared. Filenames are in format "node_label_type.csv" or "rel_label_type.csv". Node and rel are fixed. Label
+    relates to the node label, or some default value for relations. type must be alphanumeric, but it is required that
+    on a sorted filelist file 00 will be the first file for the node or relation type. The 00 file will have the
+    header information.
+    :param filetype: Type of the file, the part before first underscore. "node" or "rel". For "node" filetype, argument
+    name will be "nodes", for "rel" type argument type will be "relationships".
+    :param arglist: Argument list. Entries in the list have the format --nodes=file1,file2,... or --relationships=file1,
+    file2,...
+    :param filedir: Directory where the files are located.
+    :return: argument list is updated with new elements as discovered in the function.
     """
-    env2abbr_dict = dict(
-        Production="prod",
-        Development="dev",
-        Quality="qua",
-        Compression="comp",
-        Other="oth"
-    )
-    try:
-        return env2abbr_dict[env]
-    except KeyError:
-        logging.error("Unknown environment {env}".format(env=env))
-        return False
-
+    files = os.listdir(filedir)
+    if filetype == "node":
+        argname = "--nodes="
+    elif filetype == "rel":
+        argname = "--relationships="
+    else:
+        logging.critical("Unknown filetype {ft} see, don't know what to do...".format(ft=filetype))
+        sys.exit(1)
+    filetype = "{ft}_".format(ft=filetype)
+    files4type = [file for file in files if file[:len(filetype)] == filetype]
+    files4type.sort()
+    # Find first node type
+    pos = files4type[0].find("_", len(filetype)+1)
+    file_label = files4type[0][:pos]
+    file_label_list = []
+    for file in files4type:
+        # Is this another file for same file type and label?
+        if file[:len(file_label)] == file_label:
+            file_label_list.append(os.path.join(filedir, file))
+        else:
+            # Another label found - Remember information for previous label.
+            arg = argname + ",".join(file_label_list)
+            arglist.append(arg)
+            # Initialize this new node type
+            pos = file.find("_", len(filetype)+1)
+            file_label = file[:pos]
+            file_label_list = [os.path.join(filedir, file)]
+    # Remember to add last node type list to the set of arguments.
+    arg = argname + ",".join(file_label_list)
+    arglist.append(arg)
+    return
 
 def get_inifile(projectname):
     """
@@ -154,58 +178,6 @@ def get_inifile(projectname):
         print(log_msg % (e, ec))
         sys.exit(1)
     return ini_config
-
-
-def fmo_serverId(servername):
-    """
-    This method will return the FMO serverId. The serverId will also be used as FMO hostName.
-    FMO serverId has 'VPC.' in front of servername.
-
-    :param servername:
-
-    :return: 'VPC.' + servername.lower()
-    """
-    return "VPC.{s}".format(s=servername.lower())
-
-
-def get_named_row(nr_name, col_hrd):
-    """
-    This method will create a named tuple row.
-
-    :param nr_name: Name of the Named Row. Worksheet name in many cases. This will be helpful in case of errors.
-
-    :param col_hrd: Where the column information is stored.
-
-    :return: namedtuple class with name "named_row"
-    """
-    # Get column names
-    field_list = [cell.value for cell in col_hrd]
-    # Create named tuple subclass with name "named_row"
-    named_row = namedtuple(nr_name, field_list, rename=True)
-    return named_row
-
-
-def get_solInstId(solId, env):
-    """
-    This method will calculate the solInstId for a solId and environment. Environment needs to be Production,
-    Development or Quality.
-
-    :param solId:
-
-    :param env: Production, Development, Quality or Compression
-
-    :return:
-    """
-    env_abbr = env2abbr(env)
-    if env_abbr:
-        if env == "Production":
-            envstr = ""
-        else:
-            envstr = " {env_abbr}".format(env_abbr=env_abbr)
-        return "{solId} solInstance{env}".format(solId=solId, env=envstr)
-    else:
-        logging.error("Cannot create solInstId, invalid environment: {env}".format(env=env))
-        return False
 
 
 def run_script(path, script_name, *args):

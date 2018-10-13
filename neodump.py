@@ -25,6 +25,6 @@ for pos in range(max_nodes):
     in_use = nsf[pos*nr_len]
     if in_use:
         node_ids.append(pos)
-print("Number of nodes: {l}".format(l=len(node_ids)))
+print("Number of nodes: {nn}".format(nn=len(node_ids)))
 print("Nodes: \n{n}".format(n=node_ids[:15]))
 logging.info("End Application")

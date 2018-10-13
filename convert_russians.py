@@ -9,9 +9,9 @@ from lib import my_env
 
 cfg = my_env.init_env("sna", __file__)
 logging.info("Start Application")
-datadir = cfg["Data"]["dir"]
+data_dir = cfg["Data"]["dir"]
 rfn = cfg["Data"]["russians"]
-rf = os.path.join(datadir, rfn)
+rf = os.path.join(data_dir, rfn)
 logging.info("Read network")
 g = networkx.read_pajek(rf)
 
@@ -30,8 +30,9 @@ for rel in g.edges():
     rels += '"{sn}"{delim}"{en}"{delim}contacts\n'.format(delim=my_env.delim, sn=sn, en=en)
 li.end_loop()
 
-nf = os.path.join(datadir, "persons.csv")
-rf = os.path.join(datadir, "contacts.csv")
+import_dir = cfg["Graph"]["import_dir"]
+nf = os.path.join(import_dir, "persons.csv")
+rf = os.path.join(import_dir, "contacts.csv")
 
 nfh = open(nf, "w")
 nfh.write(nodes)
