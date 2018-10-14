@@ -11,10 +11,10 @@ import os
 import platform
 import sys
 import subprocess
-from collections import namedtuple
 from datetime import datetime
 
 delim = ","
+
 
 def init_env(projectname, filename):
     """
@@ -106,11 +106,15 @@ def neo4j_load_param(filetype, arglist, filedir):
     relates to the node label, or some default value for relations. type must be alphanumeric, but it is required that
     on a sorted filelist file 00 will be the first file for the node or relation type. The 00 file will have the
     header information.
+
     :param filetype: Type of the file, the part before first underscore. "node" or "rel". For "node" filetype, argument
     name will be "nodes", for "rel" type argument type will be "relationships".
+
     :param arglist: Argument list. Entries in the list have the format --nodes=file1,file2,... or --relationships=file1,
-    file2,...
+    file2,... The argument list will be completed in this function. The argument list will be empty on the first call.
+
     :param filedir: Directory where the files are located.
+
     :return: argument list is updated with new elements as discovered in the function.
     """
     files = os.listdir(filedir)
@@ -145,6 +149,7 @@ def neo4j_load_param(filetype, arglist, filedir):
     arglist.append(arg)
     return
 
+
 def get_inifile(projectname):
     """
     Read Project configuration ini file in subdirectory properties. Config ini filename is the projectname.
@@ -171,7 +176,7 @@ def get_inifile(projectname):
         f = open(configfile)
         ini_config.read_file(f)
         f.close()
-    except:
+    except FileNotFoundError:
         e = sys.exc_info()[1]
         ec = sys.exc_info()[0]
         log_msg = "Read Inifile not successful: %s (%s)"

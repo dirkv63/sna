@@ -14,9 +14,8 @@ logging.info("Start Application")
 cmd = os.path.join(cfg["Graph"]["path"], cfg["Graph"]["adm"])
 args = [cmd, "import", "--database={db}".format(db=cfg["Graph"]["neo_db"])]
 import_dir = cfg["Graph"]["import_dir"]
-# Remove all files from directory
-file_list = os.listdir(import_dir)
 
+file_list = os.listdir(import_dir)
 # Add arguments for node files
 my_env.neo4j_load_param("node", args, import_dir)
 # Then add arguments for relation files
