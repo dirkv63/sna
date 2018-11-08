@@ -1,5 +1,6 @@
 """
 This script will extract information from Neo4J database and dump it in files that can be used for import into Neo4J.
+This script is a test to explore the neo4j database structure.
 """
 
 import logging
