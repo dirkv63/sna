@@ -25,7 +25,7 @@ for file in file_list:
 nf = os.path.join(import_dir, "node_persons_1.csv")
 ef = os.path.join(import_dir, "rel_contacts_1.csv")
 nhl = "name:ID{delim}:LABEL".format(delim=my_env.delim)
-rhl = ":START_ID{delim}:END_ID{delim}:TYPE{delim}weight".format(delim=my_env.delim)
+rhl = ":START_ID{delim}:END_ID{delim}:TYPE{delim}weight:INT".format(delim=my_env.delim)
 
 nfh = open(nf, "w")
 nfh.write(nhl)
@@ -44,10 +44,11 @@ li.end_loop()
 
 li = my_env.LoopInfo("Relations", 1000)
 rels = ""
-for rel in g.edges():
+for rel in g.edges(data=True):
     li.info_loop()
-    (sn, en) = rel
-    weight = g.get_edge_data(sn, en)[0]["weight"]
+    (sn, en, edata) = rel
+    # weight = g.get_edge_data(sn, en)[0]["weight"]
+    weight = int(edata["weight"])
     rels += '"{sn}"{delim}"{en}"{delim}contacts{delim}{weight}\n'.format(delim=my_env.delim, sn=sn, en=en,
                                                                          weight=weight)
 li.end_loop()
